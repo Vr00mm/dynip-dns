@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        include:
+          - goarch: amd64
+            debarch: amd64
+          - goarch: arm64
+            debarch: arm64
+          - goarch: arm
+            debarch: armhf
+            goarm: "7"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build binary
+        env:
+          CGO_ENABLED: "0"
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm || '' }}
+        run: go build -trimpath -ldflags='-s -w' -o package/usr/bin/dynip-dns ./src/
+
+      - name: Prepare package metadata
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          sed -i "s/^Version:.*/Version: $VERSION/" package/DEBIAN/control
+          sed -i "s/^Architecture:.*/Architecture: ${{ matrix.debarch }}/" package/DEBIAN/control
+          chmod 755 package/DEBIAN/postinst package/DEBIAN/prerm
+
+      - name: Build .deb
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          mkdir -p dist
+          dpkg-deb --build package dist/dynip-dns_${VERSION}_${{ matrix.debarch }}.deb
+
+      - name: Copy binary to dist
+        run: cp package/usr/bin/dynip-dns dist/dynip-dns_linux_${{ matrix.debarch }}
+
+      - name: Publish to APT repository
+        uses: Vr00mm/deb-publish@v1
+        with:
+          package-path: ./package
+          token: ${{ secrets.PAGES_TOKEN }}
+          pages-repo: Vr00mm/apt  # repository hosting your APT repo via GitHub Pages
+          pages-url: https://Vr00mm.github.io/apt  # base URL of that GitHub Pages site
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.debarch }}
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**
+          generate_release_notes: true

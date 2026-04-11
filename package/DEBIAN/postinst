@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+
+CONFIG_DIR=/etc/dynip-dns
+CONFIG_FILE=$CONFIG_DIR/dynip-dns.conf
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    cp "$CONFIG_DIR/dynip-dns.conf.example" "$CONFIG_FILE"
+fi
+
+systemctl daemon-reload
+systemctl enable dynip-dns.service
+systemctl restart dynip-dns.service || true

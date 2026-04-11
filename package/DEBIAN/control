@@ -1,0 +1,7 @@
+Package: dynip-dns
+Version: 0.0.0
+Architecture: amd64
+Maintainer: Vr00mm
+Description: Dynamic IP authoritative DNS server
+ Resolves hostnames to IPs encoded directly in the subdomain label.
+ Supports A, AAAA, NS, SOA, TXT record types over UDP and TCP.

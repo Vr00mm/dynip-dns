@@ -1,0 +1,24 @@
+services:
+  dynip-dns:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: dynip-dns
+    restart: unless-stopped
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    environment:
+      ZONE: yourdomain.com
+      TTL: "60"
+      BIND: ":53"
+      NS1_HOST: ns1.yourdomain.com
+      NS2_HOST: ns2.yourdomain.com
+      NS1_IPV4: 203.0.113.10
+      NS2_IPV4: 203.0.113.11
+      # NS1_IPV6: 2001:db8::10
+      # NS2_IPV6: 2001:db8::11
+      HOSTMASTER: hostmaster.yourdomain.com
+      VERSION_TXT: dynip-dns
+      ENABLE_GLUE: "true"
+      LOG_QUERIES: "true"
