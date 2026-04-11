@@ -57,8 +57,8 @@ jobs:
         with:
           package-path: ./package
           token: ${{ secrets.PAGES_TOKEN }}
-          pages-repo: Vr00mm/apt  # repository hosting your APT repo via GitHub Pages
-          pages-url: https://Vr00mm.github.io/apt  # base URL of that GitHub Pages site
+          pages-repo: Vr00mm/vr00mm.github.io
+          pages-url: https://vr00mm.github.io
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
