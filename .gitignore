@@ -1,4 +1,3 @@
-dynip-dns
 package/usr/bin/dynip-dns
 *.zip
 .env

@@ -1,0 +1,19 @@
+# dynip-dns configuration
+# Lines starting with # are ignored.
+# Environment variables always take priority over this file.
+
+zone        = yourdomain.com
+ttl         = 60
+bind        = :53
+
+ns1_host    = ns1.yourdomain.com
+ns2_host    = ns2.yourdomain.com
+ns1_ipv4    = 203.0.113.10
+ns2_ipv4    = 203.0.113.11
+# ns1_ipv6  = 2001:db8::10
+# ns2_ipv6  = 2001:db8::11
+
+hostmaster  = hostmaster.yourdomain.com
+version_txt = dynip-dns
+enable_glue = true
+log_queries = true
