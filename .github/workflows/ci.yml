@@ -22,6 +22,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: false
 
       - name: Build
         env:
@@ -29,4 +30,4 @@ jobs:
           GOOS: linux
           GOARCH: ${{ matrix.goarch }}
           GOARM: ${{ matrix.goarm || '' }}
-        run: go build -trimpath -ldflags='-s -w' ./src/
+        run: go build -trimpath -ldflags='-s -w' -o /tmp/dynip-dns ./src/
