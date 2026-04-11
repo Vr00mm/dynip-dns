@@ -42,6 +42,7 @@ type Config struct {
 	VersionTXT string
 	EnableGlue bool
 	LogQueries bool
+	Serial     uint32
 }
 
 type DNSHeader struct {
@@ -124,7 +125,9 @@ func loadConfig() Config {
 		EnableGlue: parseBool(getEnv("ENABLE_GLUE", "true")),
 		LogQueries: parseBool(getEnv("LOG_QUERIES", "true")),
 	}
-	log.Printf("starting dynip-dns zone=%s bind=%s ttl=%d", cfg.Zone, cfg.Bind, cfg.TTL)
+	now := time.Now().UTC()
+	cfg.Serial = uint32(now.Year()*1000000 + int(now.Month())*10000 + now.Day()*100)
+	log.Printf("starting dynip-dns zone=%s bind=%s ttl=%d serial=%d", cfg.Zone, cfg.Bind, cfg.TTL, cfg.Serial)
 	return cfg
 }
 
@@ -496,8 +499,7 @@ func soaRecord(cfg Config) RR {
 	var b bytes.Buffer
 	_ = encodeName(&b, cfg.Ns1Host)
 	_ = encodeName(&b, cfg.Hostmaster)
-	serial := uint32(time.Now().UTC().Unix())
-	fields := []uint32{serial, 300, 60, 1200, cfg.TTL}
+	fields := []uint32{cfg.Serial, 300, 60, 1200, cfg.TTL}
 	for _, v := range fields {
 		_ = binary.Write(&b, binary.BigEndian, v)
 	}
