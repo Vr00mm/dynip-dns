@@ -147,7 +147,8 @@ func serveUDP(cfg Config) {
 			continue
 		}
 		req := append([]byte(nil), buf[:n]...)
-		resp, err := handleQuery(cfg, req)
+		maxUDP := parseEDNS0PayloadSize(req)
+		resp, err := handleQuery(cfg, req, maxUDP)
 		if err != nil {
 			log.Printf("udp handle error: %v", err)
 			continue
@@ -192,7 +193,7 @@ func handleTCPConn(cfg Config, conn net.Conn) {
 	if _, err := io.ReadFull(conn, req); err != nil {
 		return
 	}
-	resp, err := handleQuery(cfg, req)
+	resp, err := handleQuery(cfg, req, 0)
 	if err != nil {
 		log.Printf("tcp handle error: %v", err)
 		return
@@ -203,7 +204,7 @@ func handleTCPConn(cfg Config, conn net.Conn) {
 	_, _ = conn.Write(out.Bytes())
 }
 
-func handleQuery(cfg Config, req []byte) ([]byte, error) {
+func handleQuery(cfg Config, req []byte, maxUDP uint16) ([]byte, error) {
 	hdr, q, _, err := parseQuery(req)
 	if err != nil {
 		return nil, err
@@ -315,7 +316,60 @@ func handleQuery(cfg Config, req []byte) ([]byte, error) {
 		log.Printf("qname=%s qtype=%d rcode=%d answers=%d authority=%d extra=%d", qName, q.QType, rh.Flags&0x000f, len(answers), len(auth), len(extra))
 	}
 
-	return buildResponse(rh, q, answers, auth, extra)
+	resp, err := buildResponse(rh, q, answers, auth, extra)
+	if err != nil {
+		return nil, err
+	}
+	if maxUDP > 0 && len(resp) > int(maxUDP) {
+		rh.Flags |= 0x0200 // TC bit: tell client to retry over TCP
+		resp, err = buildResponse(rh, q, nil, nil, nil)
+	}
+	return resp, err
+}
+
+// parseEDNS0PayloadSize extracts the UDP payload size advertised by the client
+// in an EDNS0 OPT record. Returns 512 if no OPT record is present.
+func parseEDNS0PayloadSize(msg []byte) uint16 {
+	if len(msg) < 12 {
+		return 512
+	}
+	qdCount := int(binary.BigEndian.Uint16(msg[4:6]))
+	arCount := int(binary.BigEndian.Uint16(msg[10:12]))
+	if arCount == 0 {
+		return 512
+	}
+	off := 12
+	for i := 0; i < qdCount; i++ {
+		_, newOff, err := decodeName(msg, off)
+		if err != nil {
+			return 512
+		}
+		off = newOff + 4 // skip qtype + qclass
+	}
+	for i := 0; i < arCount; i++ {
+		if off >= len(msg) {
+			break
+		}
+		_, newOff, err := decodeName(msg, off)
+		if err != nil {
+			break
+		}
+		off = newOff
+		if off+10 > len(msg) {
+			break
+		}
+		rrType := binary.BigEndian.Uint16(msg[off : off+2])
+		udpSize := binary.BigEndian.Uint16(msg[off+2 : off+4]) // class field = payload size for OPT
+		rdLen := binary.BigEndian.Uint16(msg[off+8 : off+10])
+		off += 10 + int(rdLen)
+		if rrType == 41 { // OPT record
+			if udpSize < 512 {
+				return 512
+			}
+			return udpSize
+		}
+	}
+	return 512
 }
 
 func parseQuery(msg []byte) (DNSHeader, Question, int, error) {
