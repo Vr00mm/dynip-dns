@@ -13,6 +13,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -70,6 +71,54 @@ type RR struct {
 
 var configMap map[string]string
 
+const (
+	udpRateLimit  = 20 // max queries per second per source IP
+	udpRateWindow = time.Second
+)
+
+type rateBucket struct {
+	count       int
+	windowStart time.Time
+}
+
+type ipRateLimiter struct {
+	mu      sync.Mutex
+	buckets map[string]*rateBucket
+}
+
+func newRateLimiter() *ipRateLimiter {
+	return &ipRateLimiter{buckets: make(map[string]*rateBucket)}
+}
+
+func (r *ipRateLimiter) allow(ip string) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	b, ok := r.buckets[ip]
+	if !ok || now.Sub(b.windowStart) > udpRateWindow {
+		r.buckets[ip] = &rateBucket{count: 1, windowStart: now}
+		return true
+	}
+	b.count++
+	return b.count <= udpRateLimit
+}
+
+func (r *ipRateLimiter) cleanup() {
+	for {
+		time.Sleep(time.Minute)
+		r.mu.Lock()
+		now := time.Now()
+		for ip, b := range r.buckets {
+			if now.Sub(b.windowStart) > udpRateWindow*2 {
+				delete(r.buckets, ip)
+			}
+		}
+		r.mu.Unlock()
+	}
+}
+
+var udpLimiter = newRateLimiter()
+
 func loadConfigFile(path string) {
 	configMap = make(map[string]string)
 	if path == "" {
@@ -104,6 +153,7 @@ func main() {
 	flag.Parse()
 	loadConfigFile(*configPath)
 	cfg := loadConfig()
+	go udpLimiter.cleanup()
 	go serveUDP(cfg)
 	serveTCP(cfg)
 }
@@ -144,6 +194,11 @@ func serveUDP(cfg Config) {
 		n, addr, err := pc.ReadFrom(buf)
 		if err != nil {
 			log.Printf("udp read error: %v", err)
+			continue
+		}
+		srcIP, _, _ := net.SplitHostPort(addr.String())
+		if !udpLimiter.allow(srcIP) {
+			log.Printf("udp rate limit exceeded: %s", srcIP)
 			continue
 		}
 		req := append([]byte(nil), buf[:n]...)
