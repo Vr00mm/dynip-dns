@@ -120,7 +120,7 @@ docker compose -f docker/docker-compose.yml up -d
 ## Production
 
 - Expose **UDP 53** and **TCP 53**
-- Use real public IPs for `NS1_IPV4` / `NS2_IPV4` glue records
+- Use real public IPs for `NS1_IPV4` / `NS2_IPV4` (these become the A records for your nameserver hostnames)
 - You can run a single node and point both `NS1_HOST` and `NS2_HOST` at the same server — deploying two separate nodes gives redundancy but is not required
 - IPv6 glue is optional: set `NS1_IPV6` / `NS2_IPV6` only if your server has a public IPv6 address
 - Set `TTL=60` initially — increase once everything is stable

@@ -34,23 +34,32 @@ Allow inbound traffic on:
 - UDP 53
 - TCP 53
 
-### 3. Declare glue records at OVH
+### 3. Add A records for the nameserver hostnames
 
-In the OVH domain management panel, create the host (glue) records:
+In the OVH DNS zone editor for `yourdomain.com`, add **A records** so the nameserver hostnames resolve:
 
-- `ns1.yourdomain.com` → `203.0.113.10`
-- `ns2.yourdomain.com` → `203.0.113.11`
+| Type | Subdomain | Target |
+|------|-----------|--------|
+| `A` | `ns1` | `203.0.113.10` |
+| `A` | `ns2` | `203.0.113.11` |
 
-Add IPv6 glue records if OVH supports it for your domain.
+If your servers have IPv6 addresses, also add **AAAA records**:
+
+| Type | Subdomain | Target |
+|------|-----------|--------|
+| `AAAA` | `ns1` | `2001:db8::10` |
+| `AAAA` | `ns2` | `2001:db8::11` |
+
+> OVH does not have a separate "glue record" concept — these are plain A/AAAA records in the zone editor.
 
 ### 4. Add NS records for the subdomain
 
-In the OVH DNS zone editor for `yourdomain.com`, add two NS records for the `dyn` subdomain:
+In the OVH DNS zone editor for `yourdomain.com`, add two **NS records** to delegate the `dyn` subdomain:
 
-```
-dyn  NS  ns1.yourdomain.com.
-dyn  NS  ns2.yourdomain.com.
-```
+| Type | Subdomain | Target |
+|------|-----------|--------|
+| `NS` | `dyn` | `ns1.yourdomain.com.` |
+| `NS` | `dyn` | `ns2.yourdomain.com.` |
 
 Do **not** change the domain's root nameservers — OVH stays in charge of `yourdomain.com`.
 
