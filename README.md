@@ -8,11 +8,11 @@ The IP address is encoded in any subdomain label using dashes as separators:
 
 | Query | Resolves to |
 |---|---|
-| `192-168-1-1.yourdomain.com` | `192.168.1.1` |
-| `ip-10-0-0-5.yourdomain.com` | `10.0.0.5` |
-| `foo.172-16-0-9.yourdomain.com` | `172.16.0.9` |
-| `2001-db8--1.yourdomain.com` | `2001:db8::1` |
-| `bar.ip6-2001-db8--42.yourdomain.com` | `2001:db8::42` |
+| `192-168-1-1.dyn.yourdomain.com` | `192.168.1.1` |
+| `ip-10-0-0-5.dyn.yourdomain.com` | `10.0.0.5` |
+| `foo.172-16-0-9.dyn.yourdomain.com` | `172.16.0.9` |
+| `2001-db8--1.dyn.yourdomain.com` | `2001:db8::1` |
+| `bar.ip6-2001-db8--42.dyn.yourdomain.com` | `2001:db8::42` |
 
 IPv6 encoding: `-` → `:`, `--` → `::`
 
@@ -56,7 +56,7 @@ sudo systemctl restart dynip-dns
 ```
 
 ```ini
-zone        = yourdomain.com
+zone        = dyn.yourdomain.com
 ttl         = 60
 bind        = :53
 
@@ -92,12 +92,12 @@ log_queries = true
 ## Test
 
 ```bash
-dig @127.0.0.1 192-168-1-1.yourdomain.com A
-dig @127.0.0.1 foo.192-168-1-1.yourdomain.com A
-dig @127.0.0.1 2001-db8--1.yourdomain.com AAAA
-dig @127.0.0.1 yourdomain.com SOA
-dig @127.0.0.1 yourdomain.com NS
-dig @127.0.0.1 yourdomain.com TXT
+dig @127.0.0.1 192-168-1-1.dyn.yourdomain.com A
+dig @127.0.0.1 foo.192-168-1-1.dyn.yourdomain.com A
+dig @127.0.0.1 2001-db8--1.dyn.yourdomain.com AAAA
+dig @127.0.0.1 dyn.yourdomain.com SOA
+dig @127.0.0.1 dyn.yourdomain.com NS
+dig @127.0.0.1 dyn.yourdomain.com TXT
 ```
 
 ## Docker
