@@ -34,7 +34,7 @@ jobs:
           GOOS: linux
           GOARCH: ${{ matrix.goarch }}
           GOARM: ${{ matrix.goarm || '' }}
-        run: go build -trimpath -ldflags='-s -w' -o package/usr/bin/dynip-dns ./src/
+        run: go build -trimpath -ldflags='-s -w' -o package/usr/bin/dynip-dns ./cmd/dynip-dns/
 
       - name: Prepare package metadata
         run: |

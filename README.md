@@ -1,5 +1,9 @@
 # dynip-dns
 
+[![Go Version](https://img.shields.io/github/go-mod/go-version/Vr00mm/dynip-dns)](https://go.dev/)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/Vr00mm/dynip-dns/test.yml?branch=main)](https://github.com/Vr00mm/dynip-dns/actions)
+[![License](https://img.shields.io/github/license/Vr00mm/dynip-dns)](./LICENSE)
+
 Lightweight authoritative DNS server that resolves hostnames to IPs encoded directly in the subdomain label. No database, no dynamic updates — just encode the IP in the name.
 
 ## How it works
@@ -125,3 +129,19 @@ docker compose -f docker/docker-compose.yml up -d
 - IPv6 glue is optional: set `NS1_IPV6` / `NS2_IPV6` only if your server has a public IPv6 address
 - Set `TTL=60` initially — increase once everything is stable
 - See [OVH_DELEGATION.md](OVH_DELEGATION.md) for step-by-step NS delegation
+
+## Contributing
+
+```bash
+git clone https://github.com/Vr00mm/dynip-dns.git
+cd dynip-dns
+go test ./...                  # run unit tests
+go test -tags=integration ./... # run integration tests
+go build ./cmd/dynip-dns       # build the binary
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+
+## License
+
+See [LICENSE](LICENSE).

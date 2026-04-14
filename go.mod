@@ -1,3 +1,3 @@
-module dynip-dns
+module github.com/Vr00mm/dynip-dns
 
-go 1.22.0
+go 1.24

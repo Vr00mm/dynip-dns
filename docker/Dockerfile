@@ -1,9 +1,10 @@
-FROM golang:1.22-alpine AS build
+FROM golang:1.24-alpine AS build
 WORKDIR /src
 COPY go.mod ./
 RUN go mod download
-COPY src/ ./src/
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' -o /out/dynip-dns ./src/
+COPY cmd/ ./cmd/
+COPY internal/ ./internal/
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' -o /out/dynip-dns ./cmd/dynip-dns/
 
 FROM alpine:3.20
 RUN adduser -D -H -s /sbin/nologin appuser
