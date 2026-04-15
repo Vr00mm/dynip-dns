@@ -27,10 +27,10 @@ Supported record types: `A`, `AAAA`, `NS`, `SOA`, `TXT`, `ANY`
 ### Via APT (recommended)
 
 ```bash
-curl -fsSL https://vr00mm.github.io/pubkey.gpg | \
+curl -fsSL https://vr00mm.github.io/apt/pubkey.gpg | \
   sudo gpg --dearmor -o /usr/share/keyrings/vr00mm.gpg
 
-echo "deb [signed-by=/usr/share/keyrings/vr00mm.gpg] https://vr00mm.github.io/deb stable main" | \
+echo "deb [signed-by=/usr/share/keyrings/vr00mm.gpg] https://vr00mm.github.io/apt stable main" | \
   sudo tee /etc/apt/sources.list.d/dynip-dns.list
 
 sudo apt update && sudo apt install dynip-dns

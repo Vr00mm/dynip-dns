@@ -44,10 +44,12 @@ jobs:
           chmod 755 package/DEBIAN/postinst package/DEBIAN/prerm
 
       - name: Build .deb
+        id: build-deb
         run: |
           VERSION=${GITHUB_REF_NAME#v}
           mkdir -p dist
-          dpkg-deb --build package dist/dynip-dns_${VERSION}_${{ matrix.debarch }}.deb
+          dpkg-deb --build --root-owner-group package dist/dynip-dns_${VERSION}_${{ matrix.debarch }}.deb
+          echo "deb-path=dist/dynip-dns_${VERSION}_${{ matrix.debarch }}.deb" >> $GITHUB_OUTPUT
 
       - name: Copy binary to dist
         run: cp package/usr/bin/dynip-dns dist/dynip-dns_linux_${{ matrix.debarch }}
@@ -55,7 +57,7 @@ jobs:
       - name: Publish to APT repository
         uses: Vr00mm/deb-publish@v1
         with:
-          package-path: ./package
+          deb-path: ${{ steps.build-deb.outputs.deb-path }}
           token: ${{ secrets.PAGES_TOKEN }}
           pages-repo: Vr00mm/vr00mm.github.io
           pages-url: https://vr00mm.github.io
