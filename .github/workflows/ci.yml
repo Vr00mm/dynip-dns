@@ -56,4 +56,4 @@ jobs:
           cache: false
 
       - name: govulncheck
-        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+        uses: golang/govulncheck-action@v1
