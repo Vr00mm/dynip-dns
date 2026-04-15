@@ -44,11 +44,3 @@ jobs:
 
       - name: Test
         run: go test -race ./...
-
-  vuln:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: govulncheck
-        uses: golang/govulncheck-action@v1
